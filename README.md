@@ -30,7 +30,10 @@ The first time you run any command, you'll be prompted to create a master passwo
 locker generate [length] [--app name]  # Generates a secure password, optionally saving it for an app
 
 # Add a password
-locker add <app> <password>  # Stores a password for an app
+locker add <app>  # Stores a password for an app (prompts for password)
+
+# Change a password
+locker change <app>  # Changes a stored password (prompts for new password)
 
 # Get a password
 locker get <app>  # Retrieves a password (copies to clipboard)
@@ -46,10 +49,15 @@ locker delete <app>  # Removes a stored password
 
 ```bash
 # Generate a 20-character password and save it for GitHub
-locker generate 20 --app github
+locker generate 20 github
 
 # Add a password manually
-locker add email "my-secure-password"
+locker add email
+# You will be prompted to enter the password securely
+
+# Change an existing password
+locker change email
+# You will be prompted to enter the new password securely
 
 # Retrieve a password (copies to clipboard)
 locker get email
@@ -70,6 +78,7 @@ locker delete email
 - Brute force protection with attempt limiting
 - Strong password requirements enforcement
 - Secure memory handling with automatic wiping
+- Interactive password entry to prevent exposure in shell history
 
 ## Best Practices
 

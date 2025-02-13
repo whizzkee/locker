@@ -14,3 +14,6 @@ sha2 = "0.10"
 clipboard-win = "4.5.0"
 rand = "0.8"
 zeroize = "1"
+argon2 = "0.5"  # Added for better key derivation
+base64 = "0.21"  # Added for salt handling
+thiserror = "1.0"  # Added for better error handling

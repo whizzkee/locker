@@ -57,13 +57,15 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Add a new password
-    Add { app: String, password: String },
+    Add { app: String },
     /// Get a password
     Get { app: String },
     /// List all stored apps
     List,
     /// Delete a stored password
     Delete { app: String },
+    /// Change an existing password
+    Change { app: String },
     /// Generate a secure password
     Generate { 
         /// Length of the password
@@ -269,7 +271,7 @@ fn generate_password(length: usize) -> String {
 
 fn get_master_key(store: &mut PasswordStore, store_path: &PathBuf) -> Vec<u8> {
     if let Some(session) = load_session() {
-        session.master_key
+        session.master_key.clone()
     } else {
         println!("Enter master key:");
         let master_password = read_password().expect("Failed to read master key");
@@ -344,12 +346,15 @@ fn main() {
     let master_key = get_master_key(&mut store, &store_path);
 
     match args.command {
-        Commands::Add { app, password } => {
+        Commands::Add { app } => {
+            println!("Enter password for {}:", app);
+            let password = read_password().expect("Failed to read password");
+            
             if let Err(e) = PasswordStore::verify_password_strength(&password) {
                 eprintln!("Invalid password: {}", e);
                 return;
             }
-            
+
             match encrypt_password(&password, &master_key) {
                 Ok(encrypted) => {
                     store.passwords.insert(app.clone(), encrypted);
@@ -396,6 +401,32 @@ fn main() {
                 println!("Password for {} deleted successfully", app);
             } else {
                 println!("No password found for {}", app);
+            }
+        }
+        Commands::Change { app } => {
+            if !store.passwords.contains_key(&app) {
+                println!("No password found for {}", app);
+                return;
+            }
+
+            println!("Enter new password for {}:", app);
+            let password = read_password().expect("Failed to read password");
+            
+            if let Err(e) = PasswordStore::verify_password_strength(&password) {
+                eprintln!("Invalid password: {}", e);
+                return;
+            }
+            
+            match encrypt_password(&password, &master_key) {
+                Ok(encrypted) => {
+                    store.passwords.insert(app.clone(), encrypted);
+                    if let Err(e) = store.save(&store_path) {
+                        eprintln!("Failed to save password: {}", e);
+                        return;
+                    }
+                    println!("Password for {} changed successfully", app);
+                }
+                Err(e) => eprintln!("Failed to encrypt password: {}", e),
             }
         }
         _ => unreachable!(),
